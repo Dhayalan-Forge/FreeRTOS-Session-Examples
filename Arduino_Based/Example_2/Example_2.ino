@@ -58,7 +58,10 @@ void readUART()
 void setup() {
   Serial.begin(9600);
 
-  xTaskCreate(ledTask, "Task 1", 1024, )
+  xTaskCreate(blinkLed, "Led Task", 128, NULL, 1, &ledTask);
+  xTaskCreate(readUART, "Read UART", 128, NULL, 2, &uartTask);
+  xTaskCreate(readButton, "Read Button", 128, NULL, 3, &buttonTask);
+  xTaskCreate(readSensor, "Read Sensor",128, NULL, 2, &irTask);
 }
 
 void loop() {
