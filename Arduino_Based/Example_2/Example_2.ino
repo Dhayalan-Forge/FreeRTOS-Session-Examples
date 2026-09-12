@@ -1,67 +1,95 @@
+#include <Arduino.h>
+#include <Arduino_FreeRTOS.h>
+
 #define LED       6
 #define BUTTON    8
 #define SENSOR    10
 
-TaskHandle_t ledTask;
-TaskHandle_t buttonTask;
-TaskHandle_t irTask;
+TaskHandle_t ledTask, buttonTask, irTask, uartTask;
 
 volatile uint32_t customDelay = 200;
 
 void blinkLed(void *pvParameters)
 {
-  digitalWrite(LED, HIGH);
-  vTaskDelay(pdMS_TO_TICKS(customDelay));
+  while(1)
+  {
+    digitalWrite(LED, HIGH);
+    vTaskDelay(pdMS_TO_TICKS(customDelay));
 
-  digitalWrite(LED, LOW);
-  vTaskDelay(pdMS_TO_TICKS(customDelay));
+    digitalWrite(LED, LOW);
+    vTaskDelay(pdMS_TO_TICKS(customDelay));
+  }
 }
 
 void readButton(void *pvParameters)
 {
-  int data = digitalRead(BUTTON);
-  delay(50);
+  while(1)
+  {
+    int data = digitalRead(BUTTON);
+    delay(50);
 
-  (data == 0) ? Serial.println("Button Pressed") : NULL;
+    if(data == 0) Serial.println("Button Pressed");
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+
 }
 
 void readSensor(void *pvParameters)
 {
-  int data = digitalRead(SENSOR);
-  delay(50);
+  while(1)
+  {
+    int data = digitalRead(SENSOR);
+    delay(50);
 
-  (data == 0) ? Serial.println("Object Detected") : NULL;
+    if(data == 0)  Serial.println("Object Detected");
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
 }
 
 void readUART(void *pvParameters)
 {
-    if (Serial.available() > 0)
+    while (1)
     {
-        int val = Serial.parseInt();
+        if (Serial.available() > 0)
+        {
+            int val = Serial.parseInt();
 
-        while (Serial.available())
-            Serial.read();
+            if (val > 0 && val <= 3000)
+            {
+                customDelay = val;
 
-        if (val <= 0 || val > 3000)
-            val = 2000;
+                Serial.print("New delay: ");
+                Serial.println(customDelay);
+            }
 
-        customDelay = val;
+            while (Serial.available() > 0)
+            {
+                Serial.read();
+            }
+        }
 
-        Serial.print("New delay: ");
-        Serial.println(customDelay);
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
 void setup() {
   Serial.begin(9600);
 
+  pinMode(LED, OUTPUT);
+  pinMode(BUTTON, INPUT_PULLUP);
+  pinMode(SENSOR, INPUT);
+
+  Serial.println("-----------------------------");
+
   xTaskCreate(blinkLed, "Led Task", 128, NULL, 1, &ledTask);
   xTaskCreate(readUART, "Read UART", 128, NULL, 2, &uartTask);
   xTaskCreate(readButton, "Read Button", 128, NULL, 3, &buttonTask);
   xTaskCreate(readSensor, "Read Sensor",128, NULL, 2, &irTask);
+
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
 }
