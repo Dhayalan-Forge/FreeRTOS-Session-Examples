@@ -1,6 +1,3 @@
-#include <Arduino_FreeRTOS.h>
-#include <Tasks.h>
-
 #define LED       6
 #define BUTTON    8
 #define SENSOR    10
@@ -11,7 +8,7 @@ TaskHandle_t irTask;
 
 volatile uint32_t customDelay = 200;
 
-void blinkLed()
+void blinkLed(void *pvParameters)
 {
   digitalWrite(LED, HIGH);
   vTaskDelay(pdMS_TO_TICKS(customDelay));
@@ -20,7 +17,7 @@ void blinkLed()
   vTaskDelay(pdMS_TO_TICKS(customDelay));
 }
 
-void readButton()
+void readButton(void *pvParameters)
 {
   int data = digitalRead(BUTTON);
   delay(50);
@@ -28,7 +25,7 @@ void readButton()
   (data == 0) ? Serial.println("Button Pressed") : NULL;
 }
 
-void readSensor()
+void readSensor(void *pvParameters)
 {
   int data = digitalRead(SENSOR);
   delay(50);
@@ -36,7 +33,7 @@ void readSensor()
   (data == 0) ? Serial.println("Object Detected") : NULL;
 }
 
-void readUART()
+void readUART(void *pvParameters)
 {
     if (Serial.available() > 0)
     {
